@@ -1,0 +1,19 @@
+# PDF Compressor — Python Dependencies
+# ======================================
+# Install all dependencies with:
+#   pip install -r requirements.txt
+#
+# Also required (external tool — NOT a pip package):
+#   Ghostscript: https://www.ghostscript.com/download/
+#   winget install ArtifexSoftware.GhostScript
+
+# ── Core PDF Libraries ─────────────────────────────────────────────────
+pikepdf>=8.0.0          # PDF read/write and structural optimization
+PyMuPDF>=1.24.0         # Fast PDF/image extraction (fitz)
+Pillow>=10.0.0          # Image processing and JPEG re-encoding
+
+# ── CLI / Utilities ────────────────────────────────────────────────────
+# (No additional CLI dependencies needed — uses argparse from stdlib)
+
+# ── Build / Distribution ───────────────────────────────────────────────
+pyinstaller>=6.0.0      # Build standalone .exe

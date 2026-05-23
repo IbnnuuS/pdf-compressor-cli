@@ -1,0 +1,3 @@
+# Logs directory
+# Application logs are stored here in rotating format.
+# Max size: 5 MB per file, 3 backup files kept.
