@@ -138,7 +138,7 @@ def set_security_headers(response):
         "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com; "
         "img-src 'self' data: https:; "
         "font-src 'self' data: fonts.gstatic.com; "
-        "connect-src 'self' app.sandbox.midtrans.com api.sandbox.midtrans.com *.midtrans.com; "
+        "connect-src 'self' cdn.jsdelivr.net app.sandbox.midtrans.com api.sandbox.midtrans.com *.midtrans.com; "
         "frame-src 'self' app.sandbox.midtrans.com *.midtrans.com; "
         "frame-ancestors 'self' https://huggingface.co https://*.hf.space https://*.huggingface.co;"
     )
