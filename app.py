@@ -122,7 +122,8 @@ def load_user(user_id):
 def set_security_headers(response):
     """Add security headers to all responses"""
     response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    # Hugging Face Spaces embeds the app in an iframe on huggingface.co, so we must allow framing from Hugging Face domains via CSP frame-ancestors instead of blocking with SAMEORIGIN.
+    # response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     
@@ -138,7 +139,8 @@ def set_security_headers(response):
         "img-src 'self' data: https:; "
         "font-src 'self' data: fonts.gstatic.com; "
         "connect-src 'self' app.sandbox.midtrans.com api.sandbox.midtrans.com *.midtrans.com; "
-        "frame-src 'self' app.sandbox.midtrans.com *.midtrans.com;"
+        "frame-src 'self' app.sandbox.midtrans.com *.midtrans.com; "
+        "frame-ancestors 'self' https://huggingface.co https://*.hf.space https://*.huggingface.co;"
     )
     response.headers['Content-Security-Policy'] = csp
     
