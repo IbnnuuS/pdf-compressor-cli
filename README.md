@@ -1,3 +1,13 @@
+---
+title: Mursal PDF Compressor
+emoji: 📄
+colorFrom: indigo
+colorTo: blue
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # PDF Compressor CLI — Professional Edition
 
 > **Reduce PDF file sizes dramatically** — compress scanned PDFs, image-heavy PDFs,
