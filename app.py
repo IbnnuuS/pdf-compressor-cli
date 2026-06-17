@@ -1266,52 +1266,95 @@ def admin_delete_user(user_id):
 def initialize_system():
     """Initializes tables, default configurations, and creates default admin."""
     with app.app_context():
-        db.create_all()
-        
+        try:
+            db.create_all()
+        except Exception as e:
+            print(f"Warning: Database tables creation might have raced: {e}")
+
+        # Helper to set val safely in concurrent worker environments
+        def safe_set_setting(key, val, desc):
+            try:
+                # Do a fresh check inside transaction context
+                setting = SystemSetting.query.filter_by(key=key).first()
+                if not setting:
+                    SystemSetting.set_val(key, val, desc)
+            except Exception as e:
+                db.session.rollback()
+                # Verify if it was successfully set by another concurrent worker
+                try:
+                    setting = SystemSetting.query.filter_by(key=key).first()
+                    if not setting:
+                        print(f"Warning: Failed to set system setting '{key}': {e}")
+                except Exception:
+                    pass
+
         # Populate Default system settings
-        if not SystemSetting.query.filter_by(key='anonymous_limit').first():
-            SystemSetting.set_val('anonymous_limit', '1', 'Batas upload harian anonim')
-        if not SystemSetting.query.filter_by(key='logged_in_free_limit').first():
-            SystemSetting.set_val('logged_in_free_limit', '2', 'Batas upload total/harian user terdaftar free')
-        if not SystemSetting.query.filter_by(key='premium_monthly_price').first():
-            SystemSetting.set_val('premium_monthly_price', '20000', 'Harga langganan bulanan premium')
-        # Populate Default system settings
-        # Synchronize from environment variables if set in .env
+        safe_set_setting('anonymous_limit', '1', 'Batas upload harian anonim')
+        safe_set_setting('logged_in_free_limit', '2', 'Batas upload total/harian user terdaftar free')
+        safe_set_setting('premium_monthly_price', '20000', 'Harga langganan bulanan premium')
+
+        # Synchronize Midtrans settings from environment variables if set in .env
         env_server_key = os.environ.get('MIDTRANS_SERVER_KEY')
         env_client_key = os.environ.get('MIDTRANS_CLIENT_KEY')
-        
-        db_server_setting = SystemSetting.query.filter_by(key='midtrans_server_key').first()
-        if not db_server_setting:
-            SystemSetting.set_val('midtrans_server_key', env_server_key or 'SB-Mid-server-YOUR_SANDBOX_SERVER_KEY', 'Midtrans Sandbox Server Key')
-        elif env_server_key and ('YOUR_SANDBOX' in db_server_setting.value or db_server_setting.value != env_server_key):
-            SystemSetting.set_val('midtrans_server_key', env_server_key, 'Midtrans Sandbox Server Key')
-            
-        db_client_setting = SystemSetting.query.filter_by(key='midtrans_client_key').first()
-        if not db_client_setting:
-            SystemSetting.set_val('midtrans_client_key', env_client_key or 'SB-Mid-client-YOUR_SANDBOX_CLIENT_KEY', 'Midtrans Sandbox Client Key')
-        elif env_client_key and ('YOUR_SANDBOX' in db_client_setting.value or db_client_setting.value != env_client_key):
-            SystemSetting.set_val('midtrans_client_key', env_client_key, 'Midtrans Sandbox Client Key')
-            
-        # Create or sync default Admin (Defaults to 'REMOVED_SECRET' if not set in environment variables)
+
+        try:
+            db_server_setting = SystemSetting.query.filter_by(key='midtrans_server_key').first()
+            if not db_server_setting:
+                SystemSetting.set_val('midtrans_server_key', env_server_key or 'SB-Mid-server-YOUR_SANDBOX_SERVER_KEY', 'Midtrans Sandbox Server Key')
+            elif env_server_key and ('YOUR_SANDBOX' in db_server_setting.value or db_server_setting.value != env_server_key):
+                SystemSetting.set_val('midtrans_server_key', env_server_key, 'Midtrans Sandbox Server Key')
+        except Exception as e:
+            db.session.rollback()
+            print(f"Warning: Failed to sync midtrans_server_key: {e}")
+
+        try:
+            db_client_setting = SystemSetting.query.filter_by(key='midtrans_client_key').first()
+            if not db_client_setting:
+                SystemSetting.set_val('midtrans_client_key', env_client_key or 'SB-Mid-client-YOUR_SANDBOX_CLIENT_KEY', 'Midtrans Sandbox Client Key')
+            elif env_client_key and ('YOUR_SANDBOX' in db_client_setting.value or db_client_setting.value != env_client_key):
+                SystemSetting.set_val('midtrans_client_key', env_client_key, 'Midtrans Sandbox Client Key')
+        except Exception as e:
+            db.session.rollback()
+            print(f"Warning: Failed to sync midtrans_client_key: {e}")
+
+        # Create or sync default Admin safely under multi-worker concurrency
         admin_password = os.environ.get('ADMIN_INITIAL_PASSWORD') or 'REMOVED_SECRET'
-        admin_user = User.query.filter_by(username='admin').first()
-        
-        if admin_user:
-            # Sync password
-            admin_user.set_password(admin_password)
-            admin_user.is_admin = True
-            admin_user.is_premium = True
-            db.session.commit()
-            if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
-                print("System Initializer: Admin account password synchronized.")
-        else:
-            # Create admin
-            admin_user = User(username='admin', email='admin@pdfcomp.com', is_admin=True, is_premium=True)
-            admin_user.set_password(admin_password)
-            db.session.add(admin_user)
-            db.session.commit()
-            if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
-                print(f"System Initializer: Admin account created with username 'admin' and password '{admin_password}'.")
+        try:
+            admin_user = User.query.filter_by(username='admin').first()
+            if admin_user:
+                # Sync password
+                admin_user.set_password(admin_password)
+                admin_user.is_admin = True
+                admin_user.is_premium = True
+                db.session.commit()
+                if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+                    print("System Initializer: Admin account password synchronized.")
+            else:
+                # Create admin
+                admin_user = User(username='admin', email='admin@pdfcomp.com', is_admin=True, is_premium=True)
+                admin_user.set_password(admin_password)
+                db.session.add(admin_user)
+                db.session.commit()
+                if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+                    print(f"System Initializer: Admin account created with username 'admin' and password '{admin_password}'.")
+        except Exception as e:
+            db.session.rollback()
+            # If creation failed, check if the admin user exists now (created by another worker)
+            try:
+                admin_user = User.query.filter_by(username='admin').first()
+                if admin_user:
+                    # Admin exists, we sync the password
+                    admin_user.set_password(admin_password)
+                    admin_user.is_admin = True
+                    admin_user.is_premium = True
+                    db.session.commit()
+                    if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+                        print("System Initializer: Admin account synchronized after concurrent retry.")
+                else:
+                    print(f"Warning: Failed to initialize admin user: {e}")
+            except Exception as retry_e:
+                db.session.rollback()
+                print(f"Warning: Retried admin initialization failed: {retry_e}")
 
 # Run Initializer
 initialize_system()
