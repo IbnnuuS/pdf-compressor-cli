@@ -26,4 +26,5 @@ RUN mkdir -p uploads output
 # Hugging Face runs on port 7860 by default
 EXPOSE 7860
 
-CMD ["python", "app.py"]
+# Run with Gunicorn for production concurrency and performance
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:7860", "--timeout", "600", "app:app"]
