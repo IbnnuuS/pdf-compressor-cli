@@ -25,14 +25,13 @@ from compressor.core.engine import CompressionEngine
 # Initialize Flask App
 app = Flask(__name__)
 
-# CRITICAL: SECRET_KEY must be set in environment variables
+# CRITICAL: SECRET_KEY must be set in environment variables (with random fallback for zero-config deployments)
 SECRET_KEY = os.environ.get('SECRET_KEY')
 if not SECRET_KEY:
-    raise RuntimeError(
-        "CRITICAL SECURITY ERROR: SECRET_KEY environment variable is not set!\n"
-        "Generate a secure key with: python -c 'import secrets; print(secrets.token_hex(32))'\n"
-        "Then set it in your .env file or environment."
-    )
+    import secrets
+    SECRET_KEY = secrets.token_hex(32)
+    if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+        print("⚠️  Warning: SECRET_KEY environment variable is not set. Generated a random ephemeral key.")
 app.config['SECRET_KEY'] = SECRET_KEY
 
 # Database Setup - Use Environment Variables (SECURITY FIX)
