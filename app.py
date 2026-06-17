@@ -34,6 +34,15 @@ if not SECRET_KEY:
         print("⚠️  Warning: SECRET_KEY environment variable is not set. Generated a random ephemeral key.")
 app.config['SECRET_KEY'] = SECRET_KEY
 
+# Session Cookie Configuration for iframe compatibility (Hugging Face Spaces)
+is_production = os.environ.get('FLASK_ENV', 'production') == 'production' or 'SPACE_ID' in os.environ
+if is_production:
+    app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+    app.config['SESSION_COOKIE_SECURE'] = True
+else:
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_SECURE'] = False
+
 # Database Setup - Use Environment Variables (SECURITY FIX)
 DB_USER = os.environ.get('DB_USER', 'root')
 DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
@@ -103,8 +112,8 @@ limiter = Limiter(
     storage_uri=os.environ.get('REDIS_URL', 'memory://')
 )
 
-# Proxy Fix (for correct IP detection behind reverse proxy, only enabled if configured)
-if os.environ.get('USE_PROXYFIX', 'false').lower() == 'true':
+# Proxy Fix (for correct IP detection and HTTPS detection behind reverse proxy, enabled in production/HF)
+if os.environ.get('USE_PROXYFIX', 'false').lower() == 'true' or is_production:
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 login_manager = LoginManager()
@@ -207,14 +216,14 @@ def set_anonymous_cookie(response):
     """Set the generated anonymous cookie in the response if necessary."""
     if hasattr(request, 'new_anon_session') and request.new_anon_session:
         # SECURITY FIX: Add secure and samesite flags
-        is_production = os.environ.get('FLASK_ENV', 'production') == 'production'
+        is_prod = os.environ.get('FLASK_ENV', 'production') == 'production' or 'SPACE_ID' in os.environ
         response.set_cookie(
             'pdf_anon_session', 
             request.new_anon_session, 
             max_age=365 * 24 * 60 * 60,
             httponly=True,
-            secure=is_production,  # Only send over HTTPS in production
-            samesite='Lax'  # CSRF protection
+            secure=is_prod,  # Must be True if samesite='None'
+            samesite='None' if is_prod else 'Lax'
         )
     return response
 
