@@ -1291,48 +1291,26 @@ def initialize_system():
         elif env_client_key and ('YOUR_SANDBOX' in db_client_setting.value or db_client_setting.value != env_client_key):
             SystemSetting.set_val('midtrans_client_key', env_client_key, 'Midtrans Sandbox Client Key')
             
-        # Create or sync default Admin
-        admin_password = os.environ.get('ADMIN_INITIAL_PASSWORD')
+        # Create or sync default Admin (Defaults to 'REMOVED_SECRET' if not set in environment variables)
+        admin_password = os.environ.get('ADMIN_INITIAL_PASSWORD') or 'REMOVED_SECRET'
         admin_user = User.query.filter_by(username='admin').first()
         
-        if admin_password:
-            # If admin exists, update password to match environment variable
-            if admin_user:
-                admin_user.set_password(admin_password)
-                admin_user.is_admin = True
-                admin_user.is_premium = True
-                db.session.commit()
-                if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
-                    print("System Initializer: Admin password synced with ADMIN_INITIAL_PASSWORD environment variable.")
-            else:
-                # Create admin
-                admin_user = User(username='admin', email='admin@pdfcomp.com', is_admin=True, is_premium=True)
-                admin_user.set_password(admin_password)
-                db.session.add(admin_user)
-                db.session.commit()
-                if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
-                    print("System Initializer: Admin account created using ADMIN_INITIAL_PASSWORD environment variable.")
+        if admin_user:
+            # Sync password
+            admin_user.set_password(admin_password)
+            admin_user.is_admin = True
+            admin_user.is_premium = True
+            db.session.commit()
+            if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+                print("System Initializer: Admin account password synchronized.")
         else:
-            # No ADMIN_INITIAL_PASSWORD env var set
-            if not admin_user and User.query.count() == 0:
-                # Generate random password if database is completely empty
-                import secrets
-                import string
-                admin_password = ''.join(secrets.choice(string.ascii_letters + string.digits + string.punctuation) for _ in range(20))
-                if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
-                    print("\n" + "="*70)
-                    print("⚠️  CRITICAL: ADMIN_INITIAL_PASSWORD not set in environment!")
-                    print("   A random password has been generated:")
-                    print(f"   Username: admin")
-                    print(f"   Password: {admin_password}")
-                    print("   SAVE THIS PASSWORD NOW! It will not be shown again.")
-                    print("   For production, set ADMIN_INITIAL_PASSWORD in .env file or Space Secrets.")
-                    print("="*70 + "\n")
-                
-                admin_user = User(username='admin', email='admin@pdfcomp.com', is_admin=True, is_premium=True)
-                admin_user.set_password(admin_password)
-                db.session.add(admin_user)
-                db.session.commit()
+            # Create admin
+            admin_user = User(username='admin', email='admin@pdfcomp.com', is_admin=True, is_premium=True)
+            admin_user.set_password(admin_password)
+            db.session.add(admin_user)
+            db.session.commit()
+            if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+                print(f"System Initializer: Admin account created with username 'admin' and password '{admin_password}'.")
 
 # Run Initializer
 initialize_system()
