@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}PDFKu — Kompresi PDF Online Gratis{% endblock %}</title>
+  <meta name="description"
+    content="{% block meta_desc %}Kompres file PDF Anda secara online, gratis, cepat, dan aman. Tidak perlu instalasi software.{% endblock %}">
+
+  <!-- Favicon -->
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230d6efd' stroke-width='2'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/></svg>">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+  <!-- Custom Overrides -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  {% block head_extra %}{% endblock %}
+</head>
+
+<body>
+
+  <!-- ── Navbar ──────────────────────────────────────────────────── -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top py-3 shadow-sm">
+    <div class="container">
+      <!-- Brand -->
+      <a href="{{ url_for('index') }}" class="navbar-brand fs-4 text-decoration-none d-flex align-items-center">
+        <span class="fw-bold text-dark">PDF<span class="text-primary">Ku</span></span>
+      </a>
+
+      <!-- Hamburger -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <!-- Nav Links -->
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mx-lg-auto me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a href="{{ url_for('index') }}"
+              class="nav-link {{ 'active fw-bold text-primary' if request.endpoint == 'index' }}">Beranda</a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('subscription') }}"
+              class="nav-link {{ 'active fw-bold text-primary' if request.endpoint == 'subscription' }}">Premium</a>
+          </li>
+          {% if current_user.is_authenticated and current_user.is_admin %}
+          <li class="nav-item">
+            <a href="{{ url_for('admin_dashboard') }}"
+              class="nav-link {{ 'active fw-bold text-primary' if 'admin' in request.endpoint }}">Admin</a>
+          </li>
+          {% endif %}
+        </ul>
+
+        <!-- Actions -->
+        <div class="navbar-actions d-flex align-items-center gap-2">
+          {% if current_user.is_authenticated %}
+          <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle d-flex align-items-center gap-2 py-2 px-3 border shadow-sm"
+              type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius: var(--radius-md);">
+              <span
+                class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                style="width: 24px; height: 24px; font-size: 11px;">
+                {{ current_user.username[0].upper() }}
+              </span>
+              <span class="fw-semibold" style="font-size: 0.88rem;">{{ current_user.username }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 py-2"
+              style="min-width: 200px; border-radius: var(--radius-md);">
+              <!-- User Profile Header -->
+              <li class="px-3 py-2 border-bottom mb-2"
+                style="background-color: var(--bg-light); border-top-left-radius: 4px; border-top-right-radius: 4px;">
+                <div class="text-muted small"
+                  style="font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Akun
+                  Anda</div>
+                <div class="fw-bold text-dark text-truncate mt-1" style="font-size: 0.9rem;">{{ current_user.username }}
+                </div>
+                <div class="text-muted text-truncate" style="font-size: 0.78rem;">{{ current_user.email }}</div>
+              </li>
+              {% if current_user.is_premium %}
+              <li class="px-3 py-1"><span
+                  class="badge bg-warning bg-opacity-10 text-black border border-warning border-opacity-25 w-100 py-2 d-flex align-items-center justify-content-center gap-1 small fw-bold">
+                  Premium</span></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              {% endif %}
+              <li>
+                <a class="dropdown-item text-danger fw-semibold d-flex align-items-center gap-2 py-2 px-3"
+                  href="{{ url_for('logout') }}" style="font-size: 0.88rem;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                  Keluar
+                </a>
+              </li>
+            </ul>
+          </div>
+          {% else %}
+          <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">Masuk</a>
+          <a href="{{ url_for('register') }}" class="btn btn-primary">Daftar Gratis</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Flash Alerts ────────────────────────────────────────────── -->
+  <div id="alertsWrapper">
+    {% with messages = get_flashed_messages(with_categories=True) %}
+    {% for category, message in messages %}
+    {% set bs_cat = 'danger' if category == 'error' else category %}
+    <div class="alert alert-{{ bs_cat }} shadow-sm" role="alert">
+      <span class="alert-icon">
+        {% if bs_cat == 'success' %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round" class="alert-icon-svg" style="flex-shrink:0; color:#198754;">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        {% elif bs_cat == 'danger' %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round" class="alert-icon-svg" style="flex-shrink:0; color:#dc3545;">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="15" y1="9" x2="9" y2="15"></line>
+          <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
+        {% elif bs_cat == 'warning' %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round" class="alert-icon-svg" style="flex-shrink:0; color:#664d03;">
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        {% else %}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round" class="alert-icon-svg" style="flex-shrink:0; color:#0d6efd;">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        {% endif %}
+      </span>
+      <div class="alert-body" style="padding-left: 4px;">{{ message }}</div>
+      <button class="alert-close">✕</button>
+    </div>
+    {% endfor %}
+    {% endwith %}
+  </div>
+
+  <!-- ── Page Content ────────────────────────────────────────────── -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ── Footer ─────────────────────────────────────────────────── -->
+  <footer class="bg-white border-top py-4 mt-5">
+    <div
+      class="container d-flex flex-column flex-md-row justify-content-between align-items-center text-secondary small">
+      <div class="mb-3 mb-md-0">
+        &copy; {{ now.year if now else '2026' }} <strong>PDFKu</strong> — Kompresi PDF Online Gratis
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <a href="https://github.com/IbnnuuS" target="_blank" rel="noopener noreferrer"
+          class="text-decoration-none text-secondary d-flex align-items-center gap-1">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px;">
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.11.82-.26.82-.577v-2.234c-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22v3.293c0 .319.22.694.825.576C20.565 21.795 24 17.3 24 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── Scripts ─────────────────────────────────────────────────── -->
+  <!-- Bootstrap 5.3 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+    crossorigin="anonymous"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+
+</html>

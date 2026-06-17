@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block title %}Paket Premium — PDFKu{% endblock %}
+{% block meta_desc %}Upgrade ke PDFKu Premium untuk kompresi PDF tanpa batas. Hanya Rp {{ price_formatted
+}}/bulan.{% endblock %}
+
+{% block head_extra %}
+{% if midtrans_client_key and 'YOUR_SANDBOX' not in midtrans_client_key %}
+<script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ midtrans_client_key }}"></script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="subscription-page">
+  <div class="container">
+
+    <!-- Pricing Hero -->
+    <div class="pricing-hero">
+      <h1>Pilih Paket <span class="gradient-text">yang Tepat</span> untuk Anda</h1>
+      <p style="color:var(--text-secondary); font-size:1rem; max-width:480px; margin: 12px auto 0; line-height:1.7;">
+        Mulai gratis, upgrade kapan saja. Tidak ada biaya tersembunyi.
+      </p>
+    </div>
+
+    <!-- Pricing Grid -->
+    <div class="pricing-grid">
+
+      <!-- Free Plan -->
+      <div class="pricing-card glass-card">
+        <div class="plan-badge free">Gratis</div>
+        <div class="plan-name">Free</div>
+        <div class="plan-price">
+          <span class="amount" style="color:var(--text-primary)">Rp 0</span>
+          <span class="period"> / selamanya</span>
+        </div>
+        <ul class="plan-features">
+          <li>
+            <span class="feat-check">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+            <span><strong>{{ free_limit }}x upload</strong> file PDF</span>
+          </li>
+          <li>
+            <span class="feat-check">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+            <span>3 preset kompresi (Ringan, Sedang, Berat)</span>
+          </li>
+          <li>
+            <span class="feat-check">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+            <span>Pengaturan DPI & kualitas manual</span>
+          </li>
+          <li>
+            <span class="feat-check gray">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </span>
+            <span style="color:var(--text-muted)">Upload tanpa batas</span>
+          </li>
+          <li>
+            <span class="feat-check gray">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </span>
+            <span style="color:var(--text-muted)">Prioritas pemrosesan</span>
+          </li>
+        </ul>
+
+        {% if current_user.is_authenticated %}
+        {% if current_user.is_premium %}
+        <button class="btn btn-secondary btn-block" disabled>Paket Saat Ini (Premium)</button>
+        {% else %}
+        <button class="btn btn-secondary btn-block" disabled>Paket Saat Ini</button>
+        {% endif %}
+        {% else %}
+        <a href="{{ url_for('register') }}" class="btn btn-secondary btn-block">Mulai Gratis</a>
+        {% endif %}
+      </div>
+
+      <!-- Premium Plan -->
+      <div class="pricing-card glass-card featured">
+        <div class="plan-badge premium">Paling Populer</div>
+        <div class="plan-name gradient-text">Premium</div>
+        <div class="plan-price">
+          <span class="amount gradient-text">Rp {{ price_formatted }}</span>
+          <span class="period"> / bulan</span>
+        </div>
+        <ul class="plan-features">
+          <li>
+            <span class="feat-check">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+            <span><strong>Upload Tanpa Batas</strong> setiap bulan</span>
+          </li>
+          <li>
+            <span class="feat-check">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+            <span>3 preset kompresi (Ringan, Sedang, Berat)</span>
+          </li>
+          <li>
+            <span class="feat-check">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+            <span>Pengaturan DPI & kualitas manual</span>
+          </li>
+          <li>
+            <span class="feat-check">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+            <span>Pemrosesan prioritas lebih cepat</span>
+          </li>
+          <li>
+            <span class="feat-check">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </span>
+            <span>Dukungan teknis email</span>
+          </li>
+        </ul>
+
+        {% if current_user.is_authenticated %}
+        {% if current_user.is_premium %}
+        <div class="btn btn-success btn-block"
+          style="pointer-events:none; text-align:center; display:flex; align-items:center; justify-content:center; gap:8px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          Anda Sudah Premium
+        </div>
+        {% if current_user.premium_expires_at %}
+        <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:8px;">
+          Aktif hingga: <strong style="color:var(--text-secondary)">{{ current_user.premium_expires_at.strftime('%d %B
+            %Y') }}</strong>
+        </p>
+        {% endif %}
+        {% else %}
+        <button class="btn btn-primary btn-block" id="subscribeMidtransBtn">
+          Tingkatkan Sekarang
+        </button>
+        {% endif %}
+        {% else %}
+        <a href="{{ url_for('login', redirect='subscription') }}" class="btn btn-primary btn-block">
+          Masuk untuk Langganan!
+        </a>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- FAQ / Notes -->
+    <div class="glass-card mt-32"
+      style="max-width:640px; margin:40px auto 0; padding:32px; border-radius:var(--radius-xl);">
+      <h2 style="font-size:1.2rem; margin-bottom:20px;">Pertanyaan Umum</h2>
+      <div style="display:flex; flex-direction:column; gap:20px;">
+        <div>
+          <div style="font-weight:600; margin-bottom:4px;">Apakah data PDF saya aman?</div>
+          <div style="font-size:0.88rem; color:var(--text-secondary); line-height:1.6;">
+            File PDF Anda hanya digunakan untuk proses kompresi dan dihapus otomatis setelah download. Kami tidak
+            menyimpan konten dokumen Anda.
+          </div>
+        </div>
+        <div>
+          <div style="font-weight:600; margin-bottom:4px;">Bagaimana cara pembayaran?</div>
+          <div style="font-size:0.88rem; color:var(--text-secondary); line-height:1.6;">
+            Kami menggunakan Midtrans sebagai payment gateway. Tersedia transfer bank, e-wallet (GoPay, OVO, Dana), dan
+            kartu kredit.
+          </div>
+        </div>
+        <div>
+          <div style="font-weight:600; margin-bottom:4px;">Bisakah saya membatalkan kapan saja?</div>
+          <div style="font-size:0.88rem; color:var(--text-secondary); line-height:1.6;">
+            Berlangganan aktif selama 30 hari dari tanggal pembayaran. Perpanjangan dilakukan secara manual.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    function showToast(msg, type) {
+      var w = document.getElementById('alertsWrapper');
+      if (!w) return;
+
+      var svgIcons = {
+        success: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="alert-icon-svg" style="color:#6ee7b7; flex-shrink:0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
+        error: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="alert-icon-svg" style="color:#fca5a5; flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>',
+        warning: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="alert-icon-svg" style="color:#fcd34d; flex-shrink:0;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>',
+        info: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="alert-icon-svg" style="color:#a5b4fc; flex-shrink:0;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>'
+      };
+
+      var el = document.createElement('div');
+      el.className = 'alert alert-' + type;
+      el.innerHTML = '<span class="alert-icon">' + (svgIcons[type] || svgIcons.info) + '</span><div class="alert-body" style="padding-left: 4px;"></div><button class="alert-close">✕</button>';
+      el.querySelector('.alert-body').textContent = msg; // safe from XSS
+      el.querySelector('.alert-close').addEventListener('click', function () {
+        el.style.animation = 'slideOutRight 0.3s ease forwards';
+        setTimeout(function () { el.remove(); }, 300);
+      });
+      w.appendChild(el);
+      setTimeout(function () {
+        if (el.parentElement) {
+          el.style.animation = 'slideOutRight 0.3s ease forwards';
+          setTimeout(function () { el.remove(); }, 300);
+        }
+      }, 5000);
+    }
+
+    // ── Midtrans Subscribe ──────────────────────────────────────────
+    var midtransBtn = document.getElementById('subscribeMidtransBtn');
+    if (midtransBtn) {
+      midtransBtn.addEventListener('click', async function () {
+        midtransBtn.disabled = true;
+        midtransBtn.innerHTML = '<span class="spinner"></span> Memproses...';
+        try {
+          var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+          var res = await fetch('/api/subscribe/midtrans/token', {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrfToken,
+              'Content-Type': 'application/json'
+            }
+          });
+          var data = await res.json();
+          if (data.success && data.token) {
+            if (typeof window.snap === 'undefined' || !window.snap) {
+              showToast('Sistem pembayaran Midtrans gagal dimuat di dalam panel preview ini. Silakan buka aplikasi pada browser eksternal (Chrome/Edge) dan segarkan halaman.', 'error');
+              return;
+            }
+            window.snap.pay(data.token, {
+              onSuccess: async function (result) {
+                await fetch('/api/subscribe/midtrans/success', {
+                  method: 'POST',
+                  headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ order_id: result.order_id })
+                });
+                showToast('Pembayaran berhasil!', 'success');
+                setTimeout(function () { location.reload(); }, 2000);
+              },
+              onPending: function () { showToast('Menunggu pembayaran. Akun akan diupgrade setelah konfirmasi.', 'warning'); },
+              onError: function (r) { showToast('Pembayaran gagal: ' + (r.status_message || 'Error'), 'error'); },
+              onClose: function () { showToast('Pembayaran dibatalkan.', 'info'); }
+            });
+          } else {
+            showToast(data.error || 'Gagal membuat token pembayaran.', 'error');
+          }
+        } catch (e) {
+          showToast('Koneksi bermasalah. Periksa jaringan internet Anda dan coba lagi.', 'error');
+        } finally {
+          midtransBtn.disabled = false;
+          midtransBtn.innerHTML = 'Tingkatkan Sekarang';
+        }
+      });
+    }
+
+    // ── Mock/Demo Subscribe ─────────────────────────────────────────
+    var mockBtn = document.getElementById('subscribeMockBtn');
+    if (mockBtn) {
+      mockBtn.addEventListener('click', async function () {
+        mockBtn.disabled = true;
+        mockBtn.innerHTML = '<span class="spinner"></span> Memproses...';
+        try {
+          var res = await fetch('/api/subscribe/mock', { method: 'POST' });
+          var data = await res.json();
+          if (data.success) {
+            showToast('Akun Anda berhasil ditingkatkan ke Premium!', 'success');
+            setTimeout(function () { location.reload(); }, 2000);
+          } else {
+            showToast(data.error || 'Gagal upgrade akun.', 'error');
+          }
+        } catch (e) {
+          showToast('Gagal terhubung ke server. Periksa koneksi internet Anda.', 'error');
+        } finally {
+          mockBtn.disabled = false;
+          mockBtn.innerHTML = '🧪 Demo Gratis (Sandbox Test)';
+        }
+      });
+    }
+  })();
+</script>
+{% endblock %}

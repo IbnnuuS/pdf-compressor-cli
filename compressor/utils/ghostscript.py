@@ -118,7 +118,8 @@ def build_gs_command(
         "-q",                          # Quiet mode — suppress banner
         "-dBATCH",                     # Exit after processing
         "-dNOPAUSE",                   # No prompt between pages
-        "-dNOSAFER",                   # Allow file I/O
+        "-dSAFER",                     # Enable security sandbox (CRITICAL)
+        "-dPARANOIDSAFER",             # Extra security protection
         "-dCompatibilityLevel=1.4",    # PDF 1.4 compatibility for broad support
         f"-sDEVICE=pdfwrite",
         f"-dPDFSETTINGS=/{preset.gs_quality}",
@@ -186,8 +187,8 @@ def build_gs_command(
 
     # Output / input
     cmd += [
-        f"-sOutputFile={output_path}",
-        str(input_path),
+        f"-sOutputFile={output_path.as_posix()}",
+        str(input_path.as_posix()),
     ]
 
     return cmd

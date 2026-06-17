@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Masuk — PDFKu{% endblock %}
+{% block meta_desc %}Masuk ke akun PDFKu Anda untuk mengakses kuota kompresi PDF yang lebih besar.{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-10 col-md-8 col-lg-5">
+      <div class="card shadow-sm border-0 mt-5">
+        <div class="card-body p-4 p-sm-5 text-center">
+          
+          <div class="mb-4">
+            <span class="fs-2 fw-bold text-dark">PDF<span class="text-primary">Ku</span></span>
+          </div>
+
+          <h1 class="h4 fw-bold mb-2">Selamat Datang Kembali!</h1>
+          <p class="text-secondary small mb-4">Masuk untuk menggunakan kuota upload yang lebih besar.</p>
+
+          <form method="POST" action="{{ url_for('login', redirect=request.args.get('redirect', '')) }}" id="loginForm" class="text-start">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="mb-3">
+              <label class="form-label small fw-bold text-secondary" for="username">Username</label>
+              <input
+                type="text"
+                class="form-control form-control-lg"
+                id="username"
+                name="username"
+                placeholder="Masukkan username Anda"
+                required
+                autocomplete="username"
+              >
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label small fw-bold text-secondary" for="password">Password</label>
+              <div class="input-group">
+                <input
+                  type="password"
+                  class="form-control form-control-lg border-end-0"
+                  id="password"
+                  name="password"
+                  placeholder="Masukkan password Anda"
+                  required
+                  autocomplete="current-password"
+                >
+                <button class="btn btn-outline-secondary border-start-0 bg-transparent text-muted" type="button" id="togglePassword">
+                  <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold rounded-pill shadow-sm" id="loginBtn">
+              Masuk ke Akun
+            </button>
+          </form>
+
+          <div class="position-relative mt-4 mb-4">
+            <hr class="text-secondary">
+            <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 small text-muted">atau</span>
+          </div>
+
+          <div class="text-center small">
+            Belum punya akun?
+            <a href="{{ url_for('register', redirect=request.args.get('redirect', '')) }}" class="text-primary fw-bold text-decoration-none">
+              Daftar Gratis
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+      <p class="text-center mt-4 small text-muted">
+        Dengan masuk, Anda menyetujui penggunaan layanan PDFKu.
+      </p>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Password toggle
+  const toggleBtn = document.getElementById('togglePassword');
+  const pwInput = document.getElementById('password');
+  const eyeIcon = document.getElementById('eyeIcon');
+  
+  if (toggleBtn && pwInput) {
+    toggleBtn.addEventListener('click', () => {
+      const isText = pwInput.type === 'text';
+      pwInput.type = isText ? 'password' : 'text';
+      
+      if (isText) {
+        eyeIcon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+      } else {
+        eyeIcon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+      }
+    });
+  }
+</script>
+{% endblock %}

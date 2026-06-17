@@ -17,3 +17,20 @@ Pillow>=10.0.0          # Image processing and JPEG re-encoding
 
 # ── Build / Distribution ───────────────────────────────────────────────
 pyinstaller>=6.0.0      # Build standalone .exe
+
+# ── Web App / API ──────────────────────────────────────────────────────
+Flask>=3.0.0
+Flask-SQLAlchemy>=3.1.0
+Flask-Login>=0.6.3
+PyMySQL>=1.1.0
+midtransclient>=1.3.0
+
+# ── Security Dependencies (SECURITY FIX) ───────────────────────────────
+python-dotenv>=1.0.0        # Environment variables management
+Flask-Limiter>=3.5.0        # Rate limiting protection
+Flask-WTF>=1.2.0            # CSRF protection
+APScheduler>=3.10.0         # Background task scheduler for file cleanup
+
+
+
+

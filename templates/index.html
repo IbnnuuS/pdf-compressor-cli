@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}PDFKu — Kompres PDF Online Gratis, Cepat & Aman{% endblock %}
+{% block meta_desc %}Kompres ukuran file PDF Anda secara online tanpa instalasi software. Gratis, cepat, dan aman.
+Dukung preset ringan, sedang, dan berat.{% endblock %}
+
+{% block content %}
+
+<script>
+  window.isPremium = {{ 'true' if current_user.is_authenticated and current_user.is_premium else 'false' }};
+</script>
+
+<!-- ══════════════════════════════════════════
+   HERO SECTION
+══════════════════════════════════════════ -->
+<section class="hero-section">
+  <div class="container">
+    <div
+      class="badge bg-primary bg-opacity-10 text-primary mb-3 py-2 px-3 rounded-pill border border-primary border-opacity-25">
+      Kompres PDF Online — Gratis & Tanpa Instalasi
+    </div>
+
+    <h1 class="hero-title display-4">
+      Perkecil PDF Anda<br>
+      <span class="text-primary">Dalam Hitungan Detik</span>
+    </h1>
+
+    <p class="lead text-secondary mx-auto mb-4" style="max-width: 600px;">
+      Upload file PDF Anda dan dapatkan versi yang lebih ringan tanpa kehilangan kualitas yang berarti.
+      Tidak perlu daftar, tidak perlu software.
+    </p>
+
+    <!-- Quota Indicator -->
+    <div class="d-inline-block bg-white border rounded-pill py-2 px-4 shadow-sm text-secondary small">
+      {% if current_user.is_authenticated %}
+      {% if current_user.is_premium %}
+      <span class="text-warning fw-bold">Premium</span> — Upload Tanpa Batas
+      {% else %}
+      Sisa <strong>{{ free_limit - (current_user.uploads|length) if current_user.uploads else free_limit
+        }}
+        /</strong> {{ free_limit }} upload —
+      <a href="{{ url_for('subscription') }}" class="text-primary fw-bold text-decoration-none">Tingkatkan Premium</a>
+      {% endif %}
+      {% else %}
+      Kuota Anonim: <strong>{{ anon_remaining }} sisa</strong> ({{ anon_limit }}/hari) —
+      <a href="{{ url_for('register') }}" class="text-primary fw-bold text-decoration-none">Daftar gratis untuk lebih
+        →</a>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+   UPLOAD SECTION
+══════════════════════════════════════════ -->
+<section class="container pb-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+
+      <!-- Upload Zone -->
+      <div class="upload-zone mb-4 shadow-sm" id="uploadZone" role="button" tabindex="0" aria-label="Area upload PDF">
+        <input type="file" id="fileInput" accept=".pdf" class="d-none" aria-hidden="true" {% if current_user.is_authenticated and current_user.is_premium %}multiple{% endif %}>
+
+        <div class="upload-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="12" y1="18" x2="12" y2="12" />
+            <polyline points="9 15 12 12 15 15" />
+          </svg>
+        </div>
+        <h3 class="h5 fw-bold mb-2">Seret & Lepas File PDF</h3>
+        <p class="text-secondary mb-3">atau klik untuk memilih dari perangkat Anda</p>
+        <button class="btn btn-outline-primary px-4 rounded-pill" id="uploadBrowse" type="button">
+          Pilih File PDF
+        </button>
+
+        <!-- File Info (visible after selecting) -->
+        <div class="align-items-center justify-content-between bg-light border rounded p-3 mt-4 text-start"
+          id="uploadFileInfo">
+          <div class="d-flex align-items-center gap-3 overflow-hidden">
+            <div class="bg-white p-2 rounded border text-danger">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+              </svg>
+            </div>
+            <div class="overflow-hidden">
+              <div class="fw-bold text-truncate" id="fileName" style="max-width: 250px;">—</div>
+              <div class="text-secondary small" id="fileSize">—</div>
+            </div>
+          </div>
+          <button type="button" class="btn-close" onclick="resetUpload()" aria-label="Close"></button>
+        </div>
+      </div>
+
+      <!-- Settings Panel -->
+      <div class="card mb-4">
+        <div class="card-body p-4">
+          <h5 class="card-title h6 fw-bold mb-3 d-flex align-items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+            Pengaturan Kompresi
+          </h5>
+
+          <!-- Preset Selector -->
+          <div class="row g-2 mb-3">
+            <div class="col-4">
+              <input type="radio" class="btn-check" name="preset" id="presetLow" value="low">
+              <label class="btn btn-outline-primary w-100 h-100 p-2 text-start" for="presetLow">
+                <div class="fw-bold small mb-1">Low</div>
+                <div class="text-secondary" style="font-size:0.7rem">Kualitas terbaik</div>
+              </label>
+            </div>
+            <div class="col-4">
+              <input type="radio" class="btn-check" name="preset" id="presetMedium" value="medium" checked>
+              <label class="btn btn-outline-primary w-100 h-100 p-2 text-start" for="presetMedium">
+                <div class="fw-bold small mb-1">Medium</div>
+                <div class="text-secondary" style="font-size:0.7rem">Seimbang</div>
+              </label>
+            </div>
+            <div class="col-4">
+              <input type="radio" class="btn-check" name="preset" id="presetHigh" value="high">
+              <label class="btn btn-outline-primary w-100 h-100 p-2 text-start" for="presetHigh">
+                <div class="fw-bold small mb-1">High</div>
+                <div class="text-secondary" style="font-size:0.7rem">Kompresi tinggi</div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Advanced Toggle -->
+          <button
+            class="btn btn-light w-100 text-start text-secondary small fw-500 d-flex justify-content-between align-items-center"
+            type="button" data-bs-toggle="collapse" data-bs-target="#advancedPanel" aria-expanded="false"
+            aria-controls="advancedPanel">
+            <span>Pengaturan Lanjutan (DPI & Kualitas)</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          <div class="collapse mt-3" id="advancedPanel">
+            <div class="bg-light p-3 rounded border">
+
+              <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                  <label for="dpiSlider" class="form-label small fw-bold mb-0">DPI (Resolusi)</label>
+                  <span class="badge bg-white text-dark border" id="dpiValue">Default</span>
+                </div>
+                <input type="range" class="form-range" id="dpiSlider" min="72" max="300" step="1" value="150">
+                <div class="d-flex justify-content-between text-secondary" style="font-size:0.7rem">
+                  <span>72 (Layar)</span>
+                  <span>150 (Sedang)</span>
+                  <span>300 (Cetak)</span>
+                </div>
+                <div class="input-group input-group-sm mt-2">
+                  <input type="number" class="form-control" id="dpiInput" placeholder="Atur presisi manual">
+                  <button class="btn btn-outline-secondary" type="button" id="btnClearDpi">Default</button>
+                </div>
+              </div>
+
+              <hr>
+
+              <div>
+                <div class="d-flex justify-content-between mb-1">
+                  <label for="qualitySlider" class="form-label small fw-bold mb-0">Kualitas Gambar (%)</label>
+                  <span class="badge bg-white text-dark border" id="qualityValue">Default</span>
+                </div>
+                <input type="range" class="form-range" id="qualitySlider" min="10" max="100" step="1" value="75">
+                <div class="d-flex justify-content-between text-secondary" style="font-size:0.7rem">
+                  <span>10% (Rendah)</span>
+                  <span>75% (Bagus)</span>
+                  <span>100% (Sempurna)</span>
+                </div>
+                <div class="input-group input-group-sm mt-2">
+                  <input type="number" class="form-control" id="qualityInput" placeholder="Atur presisi manual">
+                  <button class="btn btn-outline-secondary" type="button" id="btnClearQuality">Default</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compress Button -->
+      <button class="btn btn-primary btn-lg w-100 fw-bold shadow-sm py-3 rounded-3" id="compressBtn" disabled>
+        Kompres PDF Sekarang
+      </button>
+
+      <!-- Progress Bar -->
+      <div class="mt-4" id="progressWrap">
+        <div class="d-flex justify-content-between small fw-bold mb-2">
+          <span id="progressStatus" class="text-primary">Memproses...</span>
+        </div>
+        <div class="progress" style="height: 10px;">
+          <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" id="progressFill"
+            role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+      </div>
+
+      <!-- Result Panel -->
+      <div class="mt-4" id="resultPanel"></div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+   FEATURES SECTION
+══════════════════════════════════════════ -->
+<section class="bg-white py-5 border-top">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold">Kenapa PDFKu?</h2>
+      <p class="text-secondary">Dirancang untuk semua orang — cepat, aman, dan mudah digunakan.</p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card h-100 bg-light">
+          <div class="card-body p-4 text-center">
+            <div class="bg-white rounded-circle shadow-sm d-inline-flex p-3 mb-3 text-primary">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+              </svg>
+            </div>
+            <h3 class="h5 fw-bold">Cepat & Efisien</h3>
+            <p class="text-secondary small mb-0">Kompresi berbasis Ghostscript yang handal. File besar selesai dalam
+              beberapa detik tanpa antrian.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 bg-light">
+          <div class="card-body p-4 text-center">
+            <div class="bg-white rounded-circle shadow-sm d-inline-flex p-3 mb-3 text-success">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+            <h3 class="h5 fw-bold">Privasi Terjaga</h3>
+            <p class="text-secondary small mb-0">File Anda diproses di server kami dan dihapus otomatis setelahnya.
+              Keamanan data adalah prioritas utama.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 bg-light">
+          <div class="card-body p-4 text-center">
+            <div class="bg-white rounded-circle shadow-sm d-inline-flex p-3 mb-3 text-primary">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <circle cx="12" cy="12" r="6" />
+                <circle cx="12" cy="12" r="2" />
+              </svg>
+            </div>
+            <h3 class="h5 fw-bold">Pengaturan Penuh</h3>
+            <p class="text-secondary small mb-0">Pilih preset kompresi cerdas atau atur sendiri DPI dan kualitas gambar
+              sesuai kebutuhan spesifik Anda.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{% endblock %}

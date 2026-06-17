@@ -1,0 +1,223 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Pemasukan & Transaksi — Admin PDFKu{% endblock %}
+
+{% block admin_content %}
+
+<div class="page-header">
+  <h1 class="page-title">Pemasukan & Transaksi</h1>
+  <p class="page-subtitle">Riwayat pendapatan keuangan dari langganan Premium pengguna</p>
+</div>
+
+<!-- Stats Dashboard -->
+<div class="row g-3 mb-4">
+  <!-- Monthly Revenue -->
+  <div class="col-12 col-sm-4">
+    <div class="glass-card shadow-sm border p-3 h-100" style="border-radius:var(--radius-md); display:flex; align-items:center; gap:12px;">
+      <div class="text-success bg-success bg-opacity-10 p-3 rounded-circle d-flex" style="color: var(--success-text) !important;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+      </div>
+      <div>
+        <div style="font-weight:800; font-size:1.4rem; color:var(--success-text);">
+          Rp {{ "{:,.0f}".format(monthly_revenue).replace(",", ".") }}
+        </div>
+        <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; letter-spacing:.05em;">Pendapatan Bulan Ini</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Total Subscriptions -->
+  <div class="col-12 col-sm-4">
+    <div class="glass-card shadow-sm border p-3 h-100" style="border-radius:var(--radius-md); display:flex; align-items:center; gap:12px;">
+      <div class="text-warning bg-warning bg-opacity-10 p-3 rounded-circle d-flex" style="color: var(--warning-text) !important;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      </div>
+      <div>
+        <div style="font-weight:800; font-size:1.4rem; color:var(--text-dark);">
+          {{ total_subscriptions }}
+        </div>
+        <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; letter-spacing:.05em;">Transaksi Sukses</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Yearly Revenue -->
+  <div class="col-12 col-sm-4">
+    <div class="glass-card shadow-sm border p-3 h-100" style="border-radius:var(--radius-md); display:flex; align-items:center; gap:12px;">
+      <div class="text-success bg-success bg-opacity-10 p-3 rounded-circle d-flex" style="color: var(--success-text) !important;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+      </div>
+      <div>
+        <div style="font-weight:800; font-size:1.4rem; color:var(--success-text);">
+          Rp {{ "{:,.0f}".format(yearly_revenue).replace(",", ".") }}
+        </div>
+        <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; letter-spacing:.05em;">Pendapatan Tahun Ini</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart: Tren Pendapatan -->
+<div class="card shadow-sm border p-4 mb-4 bg-white" style="border-radius:var(--radius-md);">
+  <div class="mb-3">
+    <h5 class="fw-bold text-dark mb-1 fs-6">Tren Pendapatan Bulanan</h5>
+    <p class="text-muted small mb-0">Pendapatan Premium dalam 12 bulan terakhir</p>
+  </div>
+  <div style="height: 240px; position:relative;">
+    <canvas
+      id="revenueChart"
+      data-labels='{{ revenue_labels | tojson }}'
+      data-values='{{ revenue_data | tojson }}'
+    ></canvas>
+  </div>
+</div>
+
+<!-- Transactions Table -->
+<div class="card shadow-sm border">
+  <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+    <h5 class="fw-bold text-dark mb-0 fs-6">Log Transaksi</h5>
+    <div style="font-size:0.78rem; color:var(--text-muted);">Diurutkan terbaru</div>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light border-bottom">
+        <tr>
+          <th class="small fw-semibold text-muted text-uppercase py-3 ps-4" style="font-size: 0.68rem; width: 60px;">#</th>
+          <th class="small fw-semibold text-muted text-uppercase py-3" style="font-size: 0.68rem;">Pengguna</th>
+          <th class="small fw-semibold text-muted text-uppercase py-3" style="font-size: 0.68rem;">Order ID</th>
+          <th class="small fw-semibold text-muted text-uppercase py-3" style="font-size: 0.68rem;">Metode</th>
+          <th class="small fw-semibold text-muted text-uppercase py-3" style="font-size: 0.68rem;">Tanggal</th>
+          <th class="small fw-semibold text-muted text-uppercase py-3" style="font-size: 0.68rem;">Jumlah</th>
+          <th class="small fw-semibold text-muted text-uppercase py-3 pe-4" style="font-size: 0.68rem;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for txn in transactions %}
+        <tr>
+          <td class="text-muted ps-4" style="font-size:0.78rem;">{{ (pagination.page - 1) * pagination.per_page + loop.index }}</td>
+          
+          <td>
+            {% if txn.user %}
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="user-avatar bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width:28px; height:28px; font-size:0.8rem; flex-shrink:0;">
+                  {{ txn.user.username[0].upper() }}
+                </div>
+                <div>
+                  <div class="fw-semibold text-dark" style="font-size:0.88rem;">{{ txn.user.username }}</div>
+                  <div class="text-muted" style="font-size:0.75rem;">{{ txn.user.email }}</div>
+                </div>
+              </div>
+            {% else %}
+              <span class="text-muted italic" style="font-size:0.85rem;">User Dihapus</span>
+            {% endif %}
+          </td>
+          
+          <td style="font-size:0.82rem; font-family: monospace; color:var(--text-secondary);">
+            {{ txn.order_id }}
+          </td>
+          
+          <td>
+            {% if txn.payment_type == 'mock' %}
+              <span class="badge bg-light text-secondary border border-secondary border-opacity-25 text-uppercase" style="font-size: 0.65rem;">🧪 Demo (Mock)</span>
+            {% else %}
+              <span class="badge bg-light text-primary border border-primary border-opacity-25 text-uppercase" style="font-size: 0.65rem; color: var(--primary-blue) !important;">{{ txn.payment_type or 'midtrans' }}</span>
+            {% endif %}
+          </td>
+          
+          <td class="text-muted" style="font-size:0.8rem; white-space:nowrap;">
+            {{ txn.created_at.strftime('%d/%m/%Y %H:%M') if txn.created_at else '—' }}
+          </td>
+          
+          <td class="fw-bold text-dark" style="font-size:0.88rem; white-space:nowrap;">
+            Rp {{ "{:,.0f}".format(txn.amount).replace(",", ".") }}
+          </td>
+          
+          <td class="pe-4">
+            {% if txn.status in ('settlement', 'success', 'capture') %}
+              <span class="badge badge-success-pill">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:-1px;"><polyline points="20 6 9 17 4 12"/></svg>
+                Sukses
+              </span>
+            {% elif txn.status == 'pending' %}
+              <span class="badge badge-warning-pill">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:-1px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Pending
+              </span>
+            {% else %}
+              <span class="badge badge-danger-pill" title="{{ txn.status }}">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px; vertical-align:-1px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                Batal / Gagal
+              </span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-5">
+            Belum ada transaksi terekam.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Pagination Footer -->
+  <div class="card-footer bg-white py-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-3" style="border-bottom-left-radius:var(--radius-md); border-bottom-right-radius:var(--radius-md);">
+    <div class="d-flex align-items-center flex-wrap gap-2">
+      <div class="small text-muted" style="white-space: nowrap;">
+        Menampilkan {{ transactions|length }} dari {{ total_subscriptions }} transaksi sukses
+      </div>
+      <div class="d-flex align-items-center gap-2 ms-2">
+        <span class="small text-muted" style="white-space: nowrap;">Tampilkan:</span>
+        <select class="form-select form-select-sm" style="width: 80px !important; display: inline-block !important; padding: 2px 20px 2px 8px !important; font-size: 0.78rem !important; height: 28px !important; border-radius: 6px !important; border: 1px solid #ced4da !important; background-color: #fff !important; cursor: pointer !important;" onchange="changePerPage(this.value)">
+          <option value="10" {% if pagination.per_page == 10 %}selected{% endif %}>10</option>
+          <option value="20" {% if pagination.per_page == 20 %}selected{% endif %}>20</option>
+          <option value="50" {% if pagination.per_page == 50 %}selected{% endif %}>50</option>
+          <option value="100" {% if pagination.per_page == 100 %}selected{% endif %}>100</option>
+        </select>
+      </div>
+    </div>
+    
+    {% if pagination.pages > 1 %}
+    <nav aria-label="Navigasi Halaman" class="mb-0">
+      <ul class="pagination pagination-sm mb-0">
+        {% if pagination.has_prev %}
+          <li class="page-item"><a class="page-link" href="{{ url_for('admin_transactions', page=pagination.prev_num, per_page=pagination.per_page) }}">Sebelumnya</a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Sebelumnya</span></li>
+        {% endif %}
+
+        {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+          {% if page_num %}
+            {% if page_num == pagination.page %}
+              <li class="page-item active" aria-current="page"><span class="page-link">{{ page_num }}</span></li>
+            {% else %}
+              <li class="page-item"><a class="page-link" href="{{ url_for('admin_transactions', page=page_num, per_page=pagination.per_page) }}">{{ page_num }}</a></li>
+            {% endif %}
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+          {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+          <li class="page-item"><a class="page-link" href="{{ url_for('admin_transactions', page=pagination.next_num, per_page=pagination.per_page) }}">Berikutnya</a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Berikutnya</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
