@@ -41,6 +41,9 @@ venv.bak/
 *.swp
 *~
 
+# AI Config
+.kilo/
+
 # Temporary and local user files
 *.tmp
 *.temp

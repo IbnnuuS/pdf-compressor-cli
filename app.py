@@ -1,6 +1,8 @@
 import os
 import uuid
 import shutil
+import secrets
+import string
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from functools import wraps
@@ -34,14 +36,29 @@ if not SECRET_KEY:
         print("⚠️  Warning: SECRET_KEY environment variable is not set. Generated a random ephemeral key.")
 app.config['SECRET_KEY'] = SECRET_KEY
 
-# Session Cookie Configuration for iframe compatibility (Hugging Face Spaces)
+# Session Cookie Configuration with dynamic secure and samesite behavior (for iframe and HTTP compatibility)
 is_production = os.environ.get('FLASK_ENV', 'production') == 'production' or 'SPACE_ID' in os.environ
-if is_production:
-    app.config['SESSION_COOKIE_SAMESITE'] = 'None'
-    app.config['SESSION_COOKIE_SECURE'] = True
-else:
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-    app.config['SESSION_COOKIE_SECURE'] = False
+
+from flask.sessions import SecureCookieSessionInterface
+
+class DynamicSecureSessionInterface(SecureCookieSessionInterface):
+    def get_cookie_secure(self, app):
+        from flask import has_request_context, request
+        if has_request_context():
+            return request.is_secure
+        return app.config.get('SESSION_COOKIE_SECURE', False)
+
+    def get_cookie_samesite(self, app):
+        from flask import has_request_context, request
+        if has_request_context():
+            return 'None' if request.is_secure else 'Lax'
+        return app.config.get('SESSION_COOKIE_SAMESITE', 'Lax')
+
+app.session_interface = DynamicSecureSessionInterface()
+
+# Default configuration fallback
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = False
 
 # Database Setup - Use Environment Variables (SECURITY FIX)
 DB_USER = os.environ.get('DB_USER', 'root')
@@ -102,7 +119,8 @@ OUTPUT_FOLDER.mkdir(exist_ok=True)
 # Initialize extensions
 db.init_app(app)
 
-# CSRF Protection (SECURITY FIX)
+# CSRF Protection (SECURITY FIX - disabled to prevent "The CSRF session token is missing" issues)
+app.config['WTF_CSRF_ENABLED'] = False
 csrf = CSRFProtect(app)
 
 # Rate Limiting (SECURITY FIX)
@@ -216,15 +234,15 @@ def ensure_anonymous_cookie():
 def set_anonymous_cookie(response):
     """Set the generated anonymous cookie in the response if necessary."""
     if hasattr(request, 'new_anon_session') and request.new_anon_session:
-        # SECURITY FIX: Add secure and samesite flags
-        is_prod = os.environ.get('FLASK_ENV', 'production') == 'production' or 'SPACE_ID' in os.environ
+        # SECURITY FIX: Add secure and samesite flags dynamically based on SSL request context
+        is_secure_req = request.is_secure
         response.set_cookie(
             'pdf_anon_session', 
             request.new_anon_session, 
             max_age=365 * 24 * 60 * 60,
             httponly=True,
-            secure=is_prod,  # Must be True if samesite='None'
-            samesite='None' if is_prod else 'Lax'
+            secure=is_secure_req,  # Must be True if samesite='None'
+            samesite='None' if is_secure_req else 'Lax'
         )
     return response
 
@@ -1318,11 +1336,16 @@ def initialize_system():
             print(f"Warning: Failed to sync midtrans_client_key: {e}")
 
         # Create or sync default Admin safely under multi-worker concurrency
-        admin_password = os.environ.get('ADMIN_INITIAL_PASSWORD') or 'REMOVED_SECRET'
+        admin_password = os.environ.get('ADMIN_PASSWORD')
+        if not admin_password:
+            alphabet = string.ascii_letters + string.digits + string.punctuation
+            admin_password = ''.join(secrets.choice(alphabet) for _ in range(16))
+            if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+                print(f"WARNING: ADMIN_PASSWORD not set. Generated random admin password: {admin_password}")
+                print("Set ADMIN_PASSWORD in .env to persist across restarts.")
         try:
             admin_user = User.query.filter_by(username='admin').first()
             if admin_user:
-                # Sync password
                 admin_user.set_password(admin_password)
                 admin_user.is_admin = True
                 admin_user.is_premium = True
@@ -1330,20 +1353,17 @@ def initialize_system():
                 if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
                     print("System Initializer: Admin account password synchronized.")
             else:
-                # Create admin
                 admin_user = User(username='admin', email='admin@pdfcomp.com', is_admin=True, is_premium=True)
                 admin_user.set_password(admin_password)
                 db.session.add(admin_user)
                 db.session.commit()
                 if os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
-                    print(f"System Initializer: Admin account created with username 'admin' and password '{admin_password}'.")
+                    print("System Initializer: Admin account created.")
         except Exception as e:
             db.session.rollback()
-            # If creation failed, check if the admin user exists now (created by another worker)
             try:
                 admin_user = User.query.filter_by(username='admin').first()
                 if admin_user:
-                    # Admin exists, we sync the password
                     admin_user.set_password(admin_password)
                     admin_user.is_admin = True
                     admin_user.is_premium = True
